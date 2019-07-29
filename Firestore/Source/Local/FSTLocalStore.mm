@@ -23,7 +23,6 @@
 #include <vector>
 
 #import "FIRTimestamp.h"
-#import "Firestore/Source/Core/FSTQuery.h"
 #import "Firestore/Source/Local/FSTLRUGarbageCollector.h"
 #import "Firestore/Source/Local/FSTLocalViewChanges.h"
 #import "Firestore/Source/Local/FSTPersistence.h"
@@ -53,6 +52,7 @@
 
 using firebase::Timestamp;
 using firebase::firestore::auth::User;
+using firebase::firestore::core::Query;
 using firebase::firestore::core::TargetIdGenerator;
 using firebase::firestore::local::LocalDocumentsView;
 using firebase::firestore::local::LocalWriteResult;
@@ -423,7 +423,7 @@ static const int64_t kResumeTokenMaxAgeSeconds = 5 * 60;  // 5 minutes
   });
 }
 
-- (FSTQueryData *)allocateQuery:(FSTQuery *)query {
+- (FSTQueryData *)allocateQuery:(Query)query {
   FSTQueryData *queryData = self.persistence.run("Allocate query", [&]() -> FSTQueryData * {
     FSTQueryData *cached = _queryCache->GetTarget(query);
     // TODO(mcg): freshen last accessed date if cached exists?
@@ -439,15 +439,15 @@ static const int64_t kResumeTokenMaxAgeSeconds = 5 * 60;  // 5 minutes
   // Sanity check to ensure that even when resuming a query it's not currently active.
   TargetId targetID = queryData.targetID;
   HARD_ASSERT(_targetIDs.find(targetID) == _targetIDs.end(),
-              "Tried to allocate an already allocated query: %s", query);
+              "Tried to allocate an already allocated query: %s", query.ToString());
   _targetIDs[targetID] = queryData;
   return queryData;
 }
 
-- (void)releaseQuery:(FSTQuery *)query {
+- (void)releaseQuery:(const Query &)query {
   self.persistence.run("Release query", [&]() {
     FSTQueryData *queryData = _queryCache->GetTarget(query);
-    HARD_ASSERT(queryData, "Tried to release nonexistent query: %s", query);
+    HARD_ASSERT(queryData, "Tried to release nonexistent query: %s", query.ToString());
 
     TargetId targetID = queryData.targetID;
 
@@ -477,7 +477,7 @@ static const int64_t kResumeTokenMaxAgeSeconds = 5 * 60;  // 5 minutes
   });
 }
 
-- (DocumentMap)executeQuery:(FSTQuery *)query {
+- (DocumentMap)executeQuery:(const Query &)query {
   return self.persistence.run("ExecuteQuery", [&]() -> DocumentMap {
     return _localDocuments->GetDocumentsMatchingQuery(query);
   });

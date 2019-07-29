@@ -21,7 +21,6 @@
 #include "Firestore/core/src/firebase/firestore/model/types.h"
 
 @class FSTMutation;
-@class FSTQuery;
 
 namespace core = firebase::firestore::core;
 namespace model = firebase::firestore::model;
