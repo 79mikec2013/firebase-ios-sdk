@@ -22,3 +22,14 @@ cc_test(
     firebase_firestore_core
     firebase_firestore_testutil
 )
+
+
+cc_binary(
+  firebase_firestore_core_order_by_list_benchmark
+  SOURCES
+    order_by_list_benchmark.cc
+  DEPENDS
+    benchmark
+    benchmark_main
+    firebase_firestore_core
+)
